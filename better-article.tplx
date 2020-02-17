@@ -1,0 +1,77 @@
+((*- extends 'article.tplx' -*))
+
+((* block packages *))
+    ((( super() )))
+((* endblock packages *))
+
+((* block predoc *))
+    ((( super() )))
+    \definecolor{lightgray}{RGB}{248, 249, 250}
+    \definecolor{darkergray}{RGB}{228, 229, 230}
+    \definecolor{superlightgray}{rgb}{0.992,0.996,1}
+    \definecolor{lightgray}{rgb}{0.936,0.944,0.96}
+    ((* block tableofcontents *))\tableofcontents((* endblock tableofcontents *))
+    \setlength{\parindent}{0em}
+    \setlength{\parskip}{1em}
+((* endblock predoc *))
+
+
+((* block author *))
+    \author{dr. ir. Pieter-Jan Volders}
+((* endblock author *))
+
+%===============================================================================
+% Input
+%===============================================================================
+
+((* block input scoped *))
+((*- if resources.global_content_filter.include_input_prompt *))
+    ((( custom_add_prompt(cell.source | highlight_code(strip_verbatim=True, metadata=cell.metadata), cell, 'superlightgray', 'darkergray') )))
+((* endif *))
+((* endblock input *))
+
+
+
+%===============================================================================
+% Output
+%===============================================================================
+
+((* block execute_result scoped *))
+    ((*- for type in output.data | filter_data_type -*))
+        ((*- if resources.global_content_filter.include_output_prompt -*))
+            ((*- if type in ['text/plain'] *))
+((( custom_add_prompt(output.data['text/plain'] | escape_latex, cell, 'white', 'white') )))
+            ((* else -*))
+((( super() )))
+            ((*- endif -*))
+        ((*- endif -*))
+    ((*- endfor -*))
+((* endblock execute_result *))
+
+
+% Display stream ouput with coloring
+((* block stream *))
+    \begin{Verbatim}[commandchars=\\\{\}]
+\parbox{\textwidth}{
+((( output.text | escape_latex | ansi2latex )))
+}
+    \end{Verbatim}
+((* endblock stream *))
+
+%==============================================================================
+% Support Macros
+%==============================================================================
+
+((* macro custom_add_prompt(text, cell, bg_color, frame_color) -*))
+    ((*- if cell.execution_count is defined -*))
+    ((*- set execution_count = "" ~ (cell.execution_count | replace(None, " ")) -*))
+    ((*- else -*))
+    ((*- set execution_count = " " -*))
+    ((*- endif -*))
+    ((*- set indention =  " " * (execution_count | length + 7) -*))
+\begin{Verbatim}[commandchars=\\\{\}]
+\noindent\fcolorbox{((( frame_color )))}{((( bg_color )))}{\parbox{\textwidth}{
+((( text | add_prompts(first='', cont='') )))
+}}
+\end{Verbatim}
+((*- endmacro *))
